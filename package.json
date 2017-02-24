@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "find-root": "1.0.0",
+    "fs": "0.0.1-security",
     "lodash": "4.17.2",
     "precinct": "3.5.0",
     "resolve": "1.2.0",
