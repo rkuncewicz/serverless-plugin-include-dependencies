@@ -6,12 +6,13 @@ const precinct = require('precinct');
 const resolve = require('resolve');
 const findRoot = require('find-root');
 
-module.exports = function(filename, serverless, filterDeps) {
+module.exports = function(filename, serverless, filterDeps, extraFiles) {
   const base = path.dirname(filename);
   const dependencies = {};
+  extraFiles = extraFiles !== undefined ? extraFiles : [] ;
 
   const modules = {};
-  const filesToProcess = [filename];
+  const filesToProcess = [filename].concat(extraFiles);
 
   const packageFilter = function(pkg) {
       if (filterDeps[pkg.name]) {

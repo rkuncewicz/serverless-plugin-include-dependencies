@@ -171,7 +171,7 @@ test('getDependencies should return an array', t => {
   const instance = createTestInstance();
   const directory = path.join(__dirname, 'fixtures');
   const file = path.join(directory, 'thing.js');
-  const dependencies = instance.getDependencies(file, directory);
+  const dependencies = instance.getDependencies(file);
 
   t.true(Array.isArray(dependencies));
   t.true(dependencies.length > 0);
@@ -182,7 +182,7 @@ test('dependencies with no main file should fail', t => {
     const instance = createTestInstance();
     const directory = path.join(__dirname, 'fixtures');
     const file = path.join(directory, 'thing-2.js');
-    instance.getDependencies(file, directory);
+    instance.getDependencies(file);
   });
 });
 
@@ -191,14 +191,14 @@ test('package with no main file should pass when filtered', t => {
       service: {
         custom: {
           'serverless-plugin-include-dependencies': {
-            'custom-package': 'custom.js'
+            filterDeps: { 'custom-package': 'custom.js' }
           }
         }
       }
     });
     const directory = path.join(__dirname, 'fixtures');
     const file = path.join(directory, 'custom-direct-dependency.js');
-    const dependencies = instance.getDependencies(file, directory);
+    const dependencies = instance.getDependencies(file);
     t.true(Array.isArray(dependencies));
     t.true(dependencies.length > 0);
 })
@@ -208,14 +208,14 @@ test('dependencies with no main file should pass when filtered', t => {
       service: {
         custom: {
           'serverless-plugin-include-dependencies': {
-            'custom-package': 'custom.js'
+            filterDeps: { 'custom-package': 'custom.js' }
           }
         }
       }
     });
     const directory = path.join(__dirname, 'fixtures');
     const file = path.join(directory, 'custom-dependency.js');
-    const dependencies = instance.getDependencies(file, directory);
+    const dependencies = instance.getDependencies(file);
     t.true(Array.isArray(dependencies));
     t.true(dependencies.length > 0);
 })
@@ -225,14 +225,14 @@ test('optional dependencies with no main file should pass when filtered', t => {
       service: {
         custom: {
           'serverless-plugin-include-dependencies': {
-            'custom-package': 'custom.js'
+            filterDeps: { 'custom-package': 'custom.js' }
           }
         }
       }
     });
     const directory = path.join(__dirname, 'fixtures');
     const file = path.join(directory, 'custom-optional-dependency.js');
-    const dependencies = instance.getDependencies(file, directory);
+    const dependencies = instance.getDependencies(file);
     t.true(Array.isArray(dependencies));
     t.true(dependencies.length > 0);
 })

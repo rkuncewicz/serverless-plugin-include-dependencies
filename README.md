@@ -4,6 +4,8 @@ This is a Serverless plugin that should make your deployed functions smaller.
 
 It does this by enabling you to add your `node_modules` folder to the `exclude` list, then it individually adds each module that your handler depends on.
 
+You may add any dependencies with no 'main' file into `filterDeps` which the specified file entry point. If there are files which are included at runtime, you may specify a root folder to search through and find dependencies.
+
 ## Usage Example
 
 `serverless.yml`
@@ -19,7 +21,11 @@ plugins:
 
 custom: 
   serverless-plugin-include-dependencies:
-    'package-name': 'main.js'
+    filterDeps:
+      'package-name': 'main.js'
+    folders:
+      api:
+        ['api/routers']
 
 functions:
   foo:

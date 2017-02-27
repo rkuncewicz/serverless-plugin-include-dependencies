@@ -1,6 +1,7 @@
 'use strict';
 
 const path = require('path');
+const fs = require('fs');
 
 const _ = require('lodash');
 const semver = require('semver');
@@ -16,10 +17,11 @@ module.exports = class IncludeDependencies {
     this.serverless = serverless;
     this.options = options;
 
-    this.filterDeps = {};
     if (serverless.service.custom &&
       serverless.service.custom['serverless-plugin-include-dependencies']) {
-        this.filterDeps = serverless.service.custom['serverless-plugin-include-dependencies'];
+        const customParams = serverless.service.custom['serverless-plugin-include-dependencies'];
+        this.filterDeps = customParams.filterDeps;
+        this.folders = customParams.folders;
     }
 
     this.hooks = {
@@ -34,14 +36,22 @@ module.exports = class IncludeDependencies {
 
   createDeploymentArtifacts() {
     const service = this.serverless.service;
+
     if (typeof service.functions === 'object') {
       Object.keys(service.functions).forEach(functionName => {
-        this.processFunction(functionName);
+        let extraFiles = [];
+        if (this.folders && this.folders[functionName]) {
+          this.folders[functionName].forEach( folder => { 
+            extraFiles = extraFiles.concat(
+              this.getChildrenFiles(path.join(this.serverless.config.servicePath, folder))
+          )})
+        }
+        this.processFunction(functionName, extraFiles);
       });
     }
   }
 
-  processFunction(functionName) {
+  processFunction(functionName, extraFiles) {
     const service = this.serverless.service;
 
     service.package = service.package || {};
@@ -49,7 +59,7 @@ module.exports = class IncludeDependencies {
 
     const functionObject = service.functions[functionName];
     const fileName = this.getHandlerFilename(functionObject.handler)
-    const list = this.getDependencies(fileName, this.serverless);
+    const list = this.getDependencies(fileName, extraFiles);
 
     if (service.package && service.package.individually) {
       functionObject.package = functionObject.package || {};
@@ -64,8 +74,8 @@ module.exports = class IncludeDependencies {
     return require.resolve((path.join(this.serverless.config.servicePath, handlerPath)));
   }
 
-  getDependencies(fileName) {
-    return getDependencyList(fileName, this.serverless, this.filterDeps);
+  getDependencies(fileName, extraFiles) {
+    return getDependencyList(fileName, this.serverless, this.filterDeps, extraFiles);
   }
 
   include(target, paths) {
@@ -74,4 +84,15 @@ module.exports = class IncludeDependencies {
     target.include = _.union(target.include, paths.map(p => path.relative(servicePath, p)));
   }
 
+  getChildrenFiles(folderPath) {
+    let results = [];
+    let children = fs.readdirSync(folderPath);
+    children.forEach(file => {
+      const childPath = path.join(folderPath, file);
+      var stat = fs.statSync(childPath);
+      if (stat && stat.isDirectory()) results = results.concat(this.getChildrenFiles(childPath));
+      else results.push(childPath);
+    });
+    return results;
+  }
 };
